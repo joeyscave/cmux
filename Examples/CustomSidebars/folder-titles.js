@@ -451,23 +451,51 @@ function tabAgent(w, t) {
 
 function tabAgentIcon(w, t) {
   const agent = tabAgent(w, t);
-  if (!agent) return ["", "clear"];
-  return AGENT_ICONS[String(agent.kind).toLowerCase()] ?? ["terminal", "tertiary"];
+  const nativeKind = Object.keys(t?.agentLifecycles ?? {}).find((key) =>
+    key !== "manual" && !key.startsWith("manual:") && !key.startsWith("cmux.feed.attention:"));
+  const kind = String(agent?.kind ?? nativeKind ?? "").toLowerCase();
+  if (!kind) return ["", "clear"];
+  return AGENT_ICONS[kind === "claude_code" ? "claude" : kind] ?? ["terminal", "tertiary"];
 }
 
-// Activity cue: a working agent's icon breathes (its opacity alternates on the
-// ~1s clock tick) and the row shows how long it has been running.
+// Native lifecycle is panel-scoped, just like each row. The session registry
+// still supplies identity, but its best-effort Feed state must not drive motion.
+// Manual workspace loaders do not describe the agent hosted by this tab.
+function tabLifecycles(t) {
+  return Object.entries(t?.agentLifecycles ?? {})
+    .filter(([key]) => key !== "manual" && !key.startsWith("manual:"))
+    .map(([, state]) => state);
+}
+
+function tabIsWorking(t) {
+  return tabLifecycles(t).some((state) =>
+    state === "running" || state === "background_work_pending");
+}
+
+function tabNeedsInput(t) {
+  return tabLifecycles(t).includes("needs_input");
+}
+
+function tabActivityLabel(t) {
+  if (tabIsWorking(t)) return "Working";
+  if (tabNeedsInput(t)) return "Waiting for input";
+  const states = tabLifecycles(t);
+  return states.length && states.every((state) => state === "idle") ? "Idle" : "Activity unknown";
+}
+
+// A working agent's icon breathes on the ~1s clock tick. An older host without
+// native lifecycle fields reports unknown activity and keeps the icon still.
 function tabAgentOpacity(w, t) {
-  const agent = tabAgent(w, t);
-  if (!agent || agent.status !== "working") return 1;
+  if (!tabIsWorking(t)) return 1;
   return (data.clock()?.second ?? 0) % 2 ? 0.3 : 1;
 }
 
 function tabElapsed(w, t) {
-  const agent = tabAgent(w, t);
   const now = data.clock()?.epoch;
-  const since = agent && (agent.sinceEpoch ?? agent.lastActivityAt);
-  if (!agent || agent.status !== "working" || !now || !since) return "";
+  // Show elapsed time since this terminal's last submitted prompt. Registry
+  // timestamps can belong to an older session or a stale working transition.
+  const since = t?.latestAt;
+  if (!tabIsWorking(t) || !Number.isFinite(now) || !Number.isFinite(since) || since > now) return "";
   const s = Math.max(0, Math.floor(now - since));
   if (s < 60) return s + "s";
   const m = Math.floor(s / 60);
@@ -486,7 +514,8 @@ function tabRow(w, t) {
       .frame(() => ({ width: isFocused() ? 2 : 1, height: 26 })),
     Image(() => tabAgentIcon(w(), t())[0])
       .font(12)
-      .color(() => tabAgentIcon(w(), t())[1])
+      .color(() => tabActivityLabel(t()) === "Activity unknown" ? "tertiary" : tabAgentIcon(w(), t())[1])
+      .help(() => tabActivityLabel(t()))
       .opacity(() => tabAgentOpacity(w(), t()))
       .rotation(() => (tabAgentOpacity(w(), t()) < 1 ? 45 : 0))
       .frame({ width: 14, height: 14 }),
@@ -502,7 +531,7 @@ function tabRow(w, t) {
       .layoutPriority(2),
     // Orange: the tab's agent is waiting on input (wins over unread); blue: unread.
     Circle({ size: 6 }).fill(() =>
-      (tabAgent(w(), t())?.status === "needs_input" ? "#E8A33D"
+      (tabNeedsInput(t()) ? "#E8A33D"
         : (t().hasUnread ? "#4C8DFF" : "clear"))),
   ])
     .paddingLeading(15)

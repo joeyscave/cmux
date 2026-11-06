@@ -30,6 +30,11 @@ public struct CustomSidebarSurfaceSnapshot: Sendable, Equatable {
     public let gitIsDirty: Bool
     /// The surface's listening ports, or empty when none (`tabs[i].ports`).
     public let listeningPorts: [Int]
+    /// The hosting panel's native agent lifecycle states, keyed by status key
+    /// (`tabs[i].agentLifecycles`). Empty means no lifecycle is known.
+    /// Values are unknown/running/background_work_pending/needs_input/idle.
+    /// These are panel-level states independent of the session registry.
+    public let agentLifecycles: [String: String]
     /// The prompt last submitted in this surface; `nil`/empty when the surface
     /// has not seen one (`tabs[i].latestPrompt`).
     public let latestSubmittedMessage: String?
@@ -52,7 +57,8 @@ public struct CustomSidebarSurfaceSnapshot: Sendable, Equatable {
         listeningPorts: [Int],
         latestSubmittedMessage: String? = nil,
         latestSubmittedAt: Date? = nil,
-        hasUnreadNotification: Bool = false
+        hasUnreadNotification: Bool = false,
+        agentLifecycles: [String: String] = [:]
     ) {
         self.panelId = panelId
         self.surfaceId = surfaceId
@@ -63,6 +69,7 @@ public struct CustomSidebarSurfaceSnapshot: Sendable, Equatable {
         self.gitBranch = gitBranch
         self.gitIsDirty = gitIsDirty
         self.listeningPorts = listeningPorts
+        self.agentLifecycles = agentLifecycles
         self.latestSubmittedMessage = latestSubmittedMessage
         self.latestSubmittedAt = latestSubmittedAt
         self.hasUnreadNotification = hasUnreadNotification

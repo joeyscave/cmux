@@ -155,7 +155,14 @@ extension Workspace {
                         listeningPorts: surfaceListeningPorts[panelId] ?? [],
                         latestSubmittedMessage: prompt?.message,
                         latestSubmittedAt: prompt?.submittedAt,
-                        hasUnreadNotification: hasUnreadNotification(panelId: panelId)
+                        hasUnreadNotification: hasUnreadNotification(panelId: panelId),
+                        agentLifecycles: (agentLifecycleStatesByPanelId[panelId] ?? [:]).mapValues { lifecycle in
+                            switch lifecycle {
+                            case .backgroundWorkPending: "background_work_pending"
+                            case .needsInput: "needs_input"
+                            case .unknown, .running, .idle: lifecycle.rawValue
+                            }
+                        }
                     )
                 )
             }

@@ -206,6 +206,7 @@ public struct CustomSidebarDataContextBuilder {
             "focused": .bool(surface.isFocused),
             "pinned": .bool(surface.isPinned),
             "hasUnread": .bool(surface.hasUnreadNotification),
+            "agentLifecycles": .object(surface.agentLifecycles.mapValues { .string($0) }),
         ]
         if let surfaceId = surface.surfaceId {
             // The id surface.* verbs accept (surface.focus etc.); `id` above

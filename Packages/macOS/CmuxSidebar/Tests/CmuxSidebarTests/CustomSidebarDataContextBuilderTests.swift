@@ -292,6 +292,27 @@ struct CustomSidebarDataContextBuilderTests {
         #expect(context.member("tabs")?.iterationValues?.first?.member("agentLifecycles") == .object([:]))
     }
 
+    @Test("Surface lifecycle values remain scoped to each terminal")
+    func surfaceLifecyclesRemainScoped() {
+        let builder = CustomSidebarDataContextBuilder()
+        let first = CustomSidebarSurfaceSnapshot(
+            panelId: UUID(), title: "idle", isFocused: false, isPinned: false,
+            directory: nil, gitBranch: nil, gitIsDirty: false, listeningPorts: [],
+            agentLifecycles: ["pi": "idle"]
+        )
+        let second = CustomSidebarSurfaceSnapshot(
+            panelId: UUID(), title: "working", isFocused: true, isPinned: false,
+            directory: nil, gitBranch: nil, gitIsDirty: false, listeningPorts: [],
+            agentLifecycles: ["pi": "running", "claude_code": "needs_input"]
+        )
+        let tabs = builder.workspaceValue(minimalWorkspace(surfaces: [first, second]))
+            .member("tabs")?.iterationValues
+        #expect(tabs?[0].member("agentLifecycles") == .object(["pi": .string("idle")]))
+        #expect(tabs?[1].member("agentLifecycles") == .object([
+            "pi": .string("running"), "claude_code": .string("needs_input")
+        ]))
+    }
+
     @Test("Surface enrichment fields appear only when present")
     func surfaceFields() {
         let builder = CustomSidebarDataContextBuilder()

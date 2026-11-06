@@ -403,6 +403,16 @@ with:
   that surface, not a pending state) + `latestAt` (epoch). Pair `latestPrompt`
   with `hasUnread` to show which of a workspace's agents is waiting, instead of
   collapsing every surface into the workspace-level `latestPrompt`.
+
+  Each tab also carries `agentLifecycles`, a read-only object mapping native
+  status keys (for example `pi`, `codex`, `claude_code`) to `unknown`, `running`,
+  `background_work_pending`, `needs_input`, or `idle`. These are the panel-level
+  lifecycle states used by the built-in sidebar, independent of the session
+  registry's `agents[j].status`. An empty object means no lifecycle is known;
+  it does not imply idle. A custom sidebar can use these values for activity
+  indicators while retaining `agents` for session identity. Manual workspace
+  loaders use `manual` or `manual:*` keys and should be excluded from agent
+  indicators. `running` and `background_work_pending` both count as active.
 - `workspaceCount` — Int. `selectedTitle` — active workspace's title.
   `selectedId` — its id. `unreadTotal` — total unread notifications.
 - `clock` — `{ time ("HH:mm:ss"), hour, minute, second, weekday, epoch }`. The
