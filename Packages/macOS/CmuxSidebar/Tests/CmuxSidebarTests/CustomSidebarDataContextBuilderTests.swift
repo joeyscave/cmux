@@ -283,6 +283,15 @@ struct CustomSidebarDataContextBuilderTests {
         #expect(progress?.member("label") == nil)
     }
 
+    @Test("Surface lifecycle is available independently of session registry records")
+    func surfaceLifecycleAvailableWithoutAgents() {
+        let builder = CustomSidebarDataContextBuilder()
+        let context = builder.workspaceValue(minimalWorkspace(surfaces: [minimalSurface()]))
+
+        #expect(context.member("agents") == nil)
+        #expect(context.member("tabs")?.iterationValues?.first?.member("agentLifecycles") == .object([:]))
+    }
+
     @Test("Surface enrichment fields appear only when present")
     func surfaceFields() {
         let builder = CustomSidebarDataContextBuilder()
