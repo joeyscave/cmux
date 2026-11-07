@@ -434,9 +434,8 @@ function tabTitle(w, t) {
   return title;
 }
 
-// The agent running in a tab, shown as an SF Symbol. Custom sidebars can only
-// render SF Symbols (not cmux's AgentIcons/* brand assets), so this uses the
-// symbol + color cmux itself pairs with each agent in its text-box actions.
+// Hosts exposing tabs[].agentIcon / agents[].icon can draw cmux's bundled
+// brand marks. Older hosts keep their SF Symbol and color until upgraded.
 const AGENT_ICONS = {
   claude: ["sparkle", "#F6D5C8"],
   codex: ["sparkles", "#8FDBFF"],
@@ -451,6 +450,8 @@ function tabAgent(w, t) {
 
 function tabAgentIcon(w, t) {
   const agent = tabAgent(w, t);
+  const icon = t?.agentIcon || agent?.icon;
+  if (icon) return [icon, "primary"];
   const nativeKind = Object.keys(t?.agentLifecycles ?? {}).find((key) =>
     key !== "manual" && !key.startsWith("manual:") && !key.startsWith("cmux.feed.attention:"));
   const kind = String(agent?.kind ?? nativeKind ?? "").toLowerCase();
@@ -514,6 +515,8 @@ function tabRow(w, t) {
       .frame(() => ({ width: isFocused() ? 2 : 1, height: 26 })),
     Image(() => tabAgentIcon(w(), t())[0])
       .font(12)
+      // Point size for a brand mark; an SF Symbol fallback keeps `.font` sizing.
+      .size(13)
       .color(() => tabActivityLabel(t()) === "Activity unknown" ? "tertiary" : tabAgentIcon(w(), t())[1])
       .help(() => tabActivityLabel(t()))
       .opacity(() => tabAgentOpacity(w(), t()))

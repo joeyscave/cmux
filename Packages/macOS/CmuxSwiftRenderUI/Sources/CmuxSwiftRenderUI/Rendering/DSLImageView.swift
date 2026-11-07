@@ -5,10 +5,9 @@ struct DSLImageView: View {
     let name: String?
     let symbolName: String?
     let size: Double?
-    let imageResolver: DSLBundledImageResolver
 
     var body: some View {
-        if let image = imageResolver.bundledImage(name) {
+        if let image = DSLBundledImageResolver().bundledImage(name) {
             if let size {
                 image.resizable()
                     .aspectRatio(contentMode: .fit)

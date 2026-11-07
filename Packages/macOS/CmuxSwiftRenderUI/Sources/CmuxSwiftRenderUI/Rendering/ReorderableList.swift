@@ -10,14 +10,13 @@ import SwiftUI
 struct ReorderableList: View {
     let rows: [RenderNode]
     let spec: ReorderSpec?
-    var imageResolver = DSLBundledImageResolver()
 
     @Environment(\.sidebarActionDispatch) private var dispatch
 
     var body: some View {
         VStack(spacing: 0) {
             ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
-                RenderNodeView(node: row, imageResolver: imageResolver)
+                RenderNodeView(node: row)
                     .draggable(itemId(index))
                     .dropDestination(for: String.self) { dropped, _ in
                         guard let draggedId = dropped.first else { return false }

@@ -4,20 +4,9 @@ import SwiftUI
 /// Resolves the bundled agent marks custom sidebars may draw instead of SF Symbols.
 @MainActor
 struct DSLBundledImageResolver {
-    private let namespaces: [String]
-    private let bundle: Bundle
-
-    init(
-        bundle: Bundle = .main,
-        namespaces: [String] = ["AgentIcons/"]
-    ) {
-        self.namespaces = namespaces
-        self.bundle = bundle
-    }
-
-    /// Loads an allowed asset from the resolver's bundle.
+    /// Loads an agent mark from the app's asset catalog.
     func bundledImage(_ name: String?) -> Image? {
-        guard let name, isAllowed(name), let image = bundle.image(forResource: name) else { return nil }
+        guard let name, isAllowed(name), let image = Bundle.main.image(forResource: name) else { return nil }
         // Source assets can be much larger than a tab mark (Hermes is 1024 px).
         // Size a copy so the bundle's cached image keeps its own size. A copy, not
         // a new image with the same representations, keeps the catalog's
@@ -34,10 +23,9 @@ struct DSLBundledImageResolver {
 
     private func isAllowed(_ name: String) -> Bool {
         // One asset name directly inside the namespace: no nested or `..` paths.
-        namespaces.contains { namespace in
-            guard name.hasPrefix(namespace) else { return false }
-            let asset = name.dropFirst(namespace.count)
-            return !asset.isEmpty && !asset.contains("/") && !asset.hasPrefix(".")
-        }
+        let namespace = "AgentIcons/"
+        guard name.hasPrefix(namespace) else { return false }
+        let asset = name.dropFirst(namespace.count)
+        return !asset.isEmpty && !asset.contains("/") && !asset.hasPrefix(".")
     }
 }

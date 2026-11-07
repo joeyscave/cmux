@@ -9,7 +9,6 @@ import SwiftUI
 /// across launches. Each column scrolls independently.
 struct ResizableHSplit: View {
     let columns: [RenderNode]
-    var imageResolver = DSLBundledImageResolver()
 
     @AppStorage("cmux.customSidebar.splitFraction") private var fraction: Double = 0.5
     @State private var dragStartFraction: Double?
@@ -39,7 +38,7 @@ struct ResizableHSplit: View {
     private func column(_ node: RenderNode?) -> some View {
         if let node {
             ScrollView {
-                RenderNodeView(node: node, imageResolver: imageResolver)
+                RenderNodeView(node: node)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                     .padding(8)
             }

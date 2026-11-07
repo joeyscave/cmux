@@ -10,7 +10,6 @@ import SwiftUI
 /// from the environment.
 struct RenderNodeView: View {
     let node: RenderNode
-    var imageResolver = DSLBundledImageResolver()
 
     @Environment(\.sidebarActionDispatch) private var dispatch
 
@@ -78,15 +77,15 @@ struct RenderNodeView: View {
         case .viewThatFits:
             ViewThatFits { children }
         case .hsplit:
-            ResizableHSplit(columns: node.children, imageResolver: imageResolver)
+            ResizableHSplit(columns: node.children)
         case .reorderable:
-            ReorderableList(rows: node.children, spec: node.reorder, imageResolver: imageResolver)
+            ReorderableList(rows: node.children, spec: node.reorder)
         case .text:
             Text(node.text ?? "")
         case .label:
             Label(node.text ?? "", systemImage: node.systemName ?? "circle")
         case .image:
-            styledImage(imageResolver.image(node.systemName))
+            styledImage(DSLBundledImageResolver().image(node.systemName))
         case .button:
             if node.children.isEmpty {
                 Button(node.text ?? "") {
@@ -153,7 +152,7 @@ struct RenderNodeView: View {
     @ViewBuilder
     private var children: some View {
         ForEach(Array(node.children.enumerated()), id: \.offset) { _, child in
-            RenderNodeView(node: child, imageResolver: imageResolver)
+            RenderNodeView(node: child)
         }
     }
 
@@ -391,11 +390,11 @@ struct RenderNodeView: View {
     @ViewBuilder
     private func modifierChildren(_ modifier: RenderModifier) -> some View {
         if modifier.children.count == 1 {
-            RenderNodeView(node: modifier.children[0], imageResolver: imageResolver)
+            RenderNodeView(node: modifier.children[0])
         } else {
             ZStack {
                 ForEach(Array(modifier.children.enumerated()), id: \.offset) { _, child in
-                    RenderNodeView(node: child, imageResolver: imageResolver)
+                    RenderNodeView(node: child)
                 }
             }
         }

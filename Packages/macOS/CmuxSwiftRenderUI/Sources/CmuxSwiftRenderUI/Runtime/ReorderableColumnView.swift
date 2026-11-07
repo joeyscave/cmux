@@ -68,7 +68,6 @@ private final class ReorderDragModel {
 /// children order reconciles afterwards.
 struct ReorderableColumnView: View {
     let node: SceneNode
-    var imageResolver = DSLBundledImageResolver()
 
     @Environment(\.sceneStore) private var store
     @Environment(\.sceneEventSink) private var sink
@@ -108,8 +107,7 @@ struct ReorderableColumnView: View {
                     childId: childId,
                     index: index,
                     model: model,
-                    spacing: rowSpacing,
-                    imageResolver: imageResolver
+                    spacing: rowSpacing
                 )
                 .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { height in
                     rowHeights.record(childId, height)
@@ -515,7 +513,6 @@ private struct ReorderableRowView: View {
     let index: Int
     let model: ReorderDragModel
     let spacing: CGFloat
-    let imageResolver: DSLBundledImageResolver
 
     @Environment(\.sceneStore) private var store
 
@@ -526,7 +523,7 @@ private struct ReorderableRowView: View {
         let isDragged = draggedId == childId
         let moves = isDragged || (model.isBlockDrag && draggedId != nil && model.blockRows.contains(childId))
         let lifted = isDragged && !model.isSettling
-        SceneNodeView(nodeId: childId, imageResolver: imageResolver)
+        SceneNodeView(nodeId: childId)
             // A moving row gets a material backdrop so it stays readable
             // while passing over other rows (and blurs them glass-style);
             // at rest rows stay transparent so the surface shows through.

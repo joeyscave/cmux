@@ -7,7 +7,6 @@ import SwiftUI
 /// the simpler, static alternative to the interpreted Swift path.
 struct DSLSidebarRenderer: View {
     let node: DSLNode
-    var imageResolver = DSLBundledImageResolver()
     let onAction: (DSLAction) -> Void
 
     var body: some View {
@@ -37,7 +36,7 @@ struct DSLSidebarRenderer: View {
             }
             .reportTapTarget(node.action?.buttonAction)
         case .image:
-            DSLImageView(name: node.systemName, symbolName: node.systemName, size: node.size, imageResolver: imageResolver)
+            DSLImageView(name: node.systemName, symbolName: node.systemName, size: node.size)
                 .modifier(OptionalDSLFont(spec: resolvedFontSpec))
         case .spacer:
             Spacer(minLength: node.size.map { CGFloat($0) })
@@ -49,7 +48,7 @@ struct DSLSidebarRenderer: View {
     @ViewBuilder
     private var childViews: some View {
         ForEach(node.children ?? []) { child in
-            DSLSidebarRenderer(node: child, imageResolver: imageResolver, onAction: onAction)
+            DSLSidebarRenderer(node: child, onAction: onAction)
         }
     }
 

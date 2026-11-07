@@ -64,19 +64,17 @@ extension EnvironmentValues {
 /// runtime's per-prop update ops.
 struct SceneNodeView: View {
     let nodeId: String
-    var imageResolver = DSLBundledImageResolver()
     @Environment(\.sceneStore) private var store
 
     var body: some View {
         if let node = store?.node(nodeId) {
-            SceneNodeContent(node: node, imageResolver: imageResolver)
+            SceneNodeContent(node: node)
         }
     }
 }
 
 private struct SceneNodeContent: View {
     let node: SceneNode
-    let imageResolver: DSLBundledImageResolver
     @Environment(\.sceneStore) private var store
     @Environment(\.sceneEventSink) private var sink
     @Environment(\.sceneHovered) private var ancestorHovered
@@ -88,7 +86,7 @@ private struct SceneNodeContent: View {
         if let menuId = contextMenuChildId {
             styled(content)
                 .contextMenu {
-                    SceneNodeView(nodeId: menuId, imageResolver: imageResolver)
+                    SceneNodeView(nodeId: menuId)
                 }
         } else {
             styled(content)
@@ -125,8 +123,7 @@ private struct SceneNodeContent: View {
             DSLImageView(
                 name: node.string("asset") ?? node.string("systemName"),
                 symbolName: node.string("systemName") ?? node.string("asset"),
-                size: node.double("size"),
-                imageResolver: imageResolver
+                size: node.double("size")
             )
         case "button":
             if node.children.isEmpty {
@@ -170,7 +167,7 @@ private struct SceneNodeContent: View {
         case "textfield":
             SceneTextFieldView(node: node, sink: sink, autofocusGate: store?.autofocusGate)
         case "reorderable":
-            ReorderableColumnView(node: node, imageResolver: imageResolver)
+            ReorderableColumnView(node: node)
         default:
             EmptyView()
         }
@@ -184,7 +181,7 @@ private struct SceneNodeContent: View {
     private var children: some View {
         // contextMenu children never render inline (see body).
         ForEach(node.children.filter { store?.node($0)?.type != "contextMenu" }, id: \.self) { childId in
-            SceneNodeView(nodeId: childId, imageResolver: imageResolver)
+            SceneNodeView(nodeId: childId)
         }
     }
 
