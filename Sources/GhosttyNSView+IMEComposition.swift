@@ -8,6 +8,21 @@ extension GhosttyNSView {
         "com.apple.inputmethod.Korean.2SetKorean",
     ]
 
+    /// Delivers a multi-paragraph IME commit as one paste, so its embedded
+    /// line breaks stay in the program's input instead of submitting line by
+    /// line. A single line followed by Return keeps typed-input semantics.
+    @discardableResult
+    func pasteMultilineIMECommit(_ text: String) -> Bool {
+        let (body, _) = TerminalAccessibilityText.splitTrailingLineBreaks(text)
+        guard TerminalAccessibilityText.containsLineBreak(body) else { return false }
+
+        // The whole commit goes through the paste path, including its trailing
+        // line breaks: treating those as Return would submit a dictated
+        // paragraph before the person is ready.
+        terminalSurface?.sendText(TerminalAccessibilityText.pastePayload(text))
+        return true
+    }
+
     /// Clamps AppKit's marked-text selection into the active preedit buffer.
     func normalizedMarkedSelectionRange(_ range: NSRange, markedLength: Int) -> NSRange {
         guard markedLength > 0 else {

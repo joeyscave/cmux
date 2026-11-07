@@ -7605,6 +7605,13 @@ class GhosttyNSView: NSView, NSUserInterfaceValidations {
             return
         }
 
+        // An IME can commit a dictated paragraph while keys are interpreted,
+        // sometimes across several insertText calls. Keep it in one paste.
+        if pasteMultilineIMECommit(accumulatedText.joined()) {
+            imeConsumedKeyUps.insert(event.keyCode)
+            return
+        }
+
         // A forwarded keyDown owns its keyUp. Clear any stale IME suppression
         // entry left by an earlier suppressed repeat for the same physical key.
         imeConsumedKeyUps.remove(event.keyCode)
@@ -14847,6 +14854,7 @@ extension GhosttyNSView: NSTextInputClient {
 #endif
 
         guard !sanitizedChars.isEmpty else { return }
+        if pasteMultilineIMECommit(sanitizedChars) { return }
         sendTextToSurface(
             sanitizedChars,
             preserveLiteralEscape: !isExternalCommittedText
